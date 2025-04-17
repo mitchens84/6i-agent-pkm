@@ -8,10 +8,10 @@ sys.path.append(library_path)
 from langchain_openai import ChatOpenAI
 from langchain.prompts import PromptTemplate
 from langgraph.graph import Graph, END
-from services.notion_service import query_notion
-from services.airtable_service import query_airtable
-from state.state_manager import StateManager
-from agents.pkm_agent import PKMAgent
+from src.services.notion_service import query_notion
+from src.services.airtable_service import query_airtable
+from src.state.state_manager import StateManager
+from src.agents.pkm_agent import PKMAgent
 
 class ResearchWorkflow:
     def __init__(self):
@@ -42,7 +42,7 @@ class ResearchWorkflow:
         workflow.add_node("generate_response", self.generate_response)
 
         workflow.set_entry_point("research_query")
-        
+
         workflow.add_edge("research_query", "analyze_results")
         workflow.add_edge("analyze_results", "generate_response")
         workflow.add_edge("generate_response", END)
@@ -54,7 +54,7 @@ class ResearchWorkflow:
         notion_results = query_notion(query, databases=self.notion_databases)
         airtable_results = query_airtable(query, bases=self.airtable_bases)
         personal_data_results = self.pkm_agent.query_personal_data(query)
-        
+
         combined_results = f"{notion_results}\n\n{airtable_results}\n\n{personal_data_results}"
         return {"query": query, "initial_results": combined_results}
 
@@ -71,15 +71,15 @@ class ResearchWorkflow:
         "3. Supplemental Information: Add any relevant information from your general knowledge that complements the query results.\n"
         "Ensure each piece of information is clearly attributed to its source."
         )
-        
+
         llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
         analysis = llm.invoke(prompt.format(query=query, results=results))
-        
+
         return {"query": query, "analysis": analysis.content}
 
     def generate_response(self, state):
         analysis = state["analysis"]
-        
+
         prompt = PromptTemplate.from_template(
         "Based on the following analysis, generate a final response for the user:\n\n"
         "{analysis}\n\n"
@@ -89,10 +89,10 @@ class ResearchWorkflow:
         "3. Detailed Content: Provide a comprehensive answer to the user's query, clearly attributing information to its source.\n"
         "4. Additional Insights: Include any supplemental information from your general knowledge that enhances the response."
         )
-        
+
         llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
         response = llm.invoke(prompt.format(analysis=analysis))
-        
+
         return {"response": response.content}
 
     def run(self, inputs):
