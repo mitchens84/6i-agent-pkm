@@ -39,7 +39,7 @@ marshmallow==3.21.3
 multidict==6.0.5
 mypy-extensions==1.0.0
 notion-client==2.2.1
-numpy==1.26.4
+numpy==2.4.1
 openai==1.36.0
 orjson==3.10.6
 packaging==24.1
